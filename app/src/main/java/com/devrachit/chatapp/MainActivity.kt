@@ -15,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.devrachit.chatapp.Constants.Companion.API_SECRET
+import com.devrachit.chatapp.screens.ChatListScreen
 import com.devrachit.chatapp.screens.SignupScreen
 import com.devrachit.chatapp.screens.loginScreen
 import com.devrachit.chatapp.ui.theme.ChatappTheme
@@ -60,7 +61,9 @@ class MainActivity : ComponentActivity() {
             composable(Screen.LoginScreen.route){
                 loginScreen()
             }
-
+            composable(Screen.ChatListScreen.route){
+                ChatListScreen(navController = navController,vm= viewModel)
+            }
 
         }
 

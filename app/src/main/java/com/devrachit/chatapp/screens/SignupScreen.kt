@@ -9,12 +9,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -37,10 +39,14 @@ import androidx.navigation.NavController
 import com.devrachit.chatapp.LCViewModel
 import com.devrachit.chatapp.R
 import com.devrachit.chatapp.Screen
+import com.devrachit.chatapp.util.CheckSignedIn
 import com.devrachit.chatapp.util.navigateToScreen
 
 @Composable
 fun SignupScreen(navController: NavController, viewModel: LCViewModel) {
+
+    CheckSignedIn(navController = navController, viewModel =viewModel )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -140,7 +146,8 @@ fun SignupScreen(navController: NavController, viewModel: LCViewModel) {
                     viewModel.signUp(
                         nameState.value.text,
                         emailState.value.text,
-                        passwordState.value.text
+                        passwordState.value.text,
+                        numberState.value.text
                     )
                 }, modifier = Modifier
                     .padding(8.dp)
@@ -158,6 +165,34 @@ fun SignupScreen(navController: NavController, viewModel: LCViewModel) {
                     )
                 })
 
+        }
+        if(viewModel.inProgress.value){
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .clickable {
+                        viewModel.inProgress.value = false
+                    }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentHeight()
+                        .background(Color.Black)
+                        .verticalScroll(
+                            rememberScrollState()
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = "Signing Up...", color = Color.White, modifier = Modifier.padding(8.dp))
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier
+                            .size(50.dp)
+                    )
+                }
+            }
         }
     }
 
