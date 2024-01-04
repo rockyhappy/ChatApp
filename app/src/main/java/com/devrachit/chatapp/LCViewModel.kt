@@ -29,8 +29,34 @@ class LCViewModel @Inject constructor(
             getUserData(it.uid)
         }
     }
+
+    fun Login(email: String, password: String) {
+        if(email.isEmpty() || password.isEmpty()){
+            handleException(customMessage = "Please fill all the fields")
+            return
+        }
+        else{
+            inProgress.value = true
+            auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    signedIn.value = true
+                    inProgress.value = false
+                    Log.d("TAG", "signInWithEmail:success")
+                    auth.currentUser?.let {
+                        getUserData(it.uid)
+                    }
+                } else {
+                    Log.w("TAG", "signInWithEmail:failure", task.exception)
+                    handleException(task.exception, "Sign in failed")
+                    inProgress.value = false
+                }
+            }
+        }
+
+    }
+
     fun signUp(name: String, email: String, password: String, number: String) {
-        inProgress.value = true
         if(name.isEmpty() || email.isEmpty() || password.isEmpty() || number.isEmpty()){
             handleException(customMessage = "Please fill all the fields")
             return
