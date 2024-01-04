@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "158052539303",
+    "project_id": "chatapp-3433b",
+    "storage_bucket": "chatapp-3433b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:158052539303:android:64f1e52a743dd20ee8f482",
+        "android_client_info": {
+          "package_name": "com.devrachit.chatapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTmp5XLOxiB4Khwz1lH_FwQkhC6uqyCuw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
