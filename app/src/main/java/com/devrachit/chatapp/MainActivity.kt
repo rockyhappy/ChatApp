@@ -16,7 +16,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.devrachit.chatapp.Constants.Companion.API_SECRET
 import com.devrachit.chatapp.screens.ChatListScreen
+import com.devrachit.chatapp.screens.ProfileScreen
 import com.devrachit.chatapp.screens.SignupScreen
+import com.devrachit.chatapp.screens.StatusScreen
 import com.devrachit.chatapp.screens.loginScreen
 import com.devrachit.chatapp.ui.theme.ChatappTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,6 +28,7 @@ sealed class Screen(val route: String) {
     object LoginScreen : Screen("login_screen")
     object ChatListScreen : Screen("chat_list_screen")
     object ProfileScreen : Screen("profile_screen")
+    object StatusScreen : Screen("status_screen")
     object SingleChatScreen : Screen("single_chat_screen/{chatId}"){
         fun createRoute(chatId: String) = "single_chat_screen/$chatId"
     }
@@ -64,6 +67,14 @@ class MainActivity : ComponentActivity() {
             composable(Screen.ChatListScreen.route){
                 ChatListScreen(navController = navController,vm= viewModel)
             }
+            composable(Screen.ProfileScreen.route){
+                ProfileScreen(navController = navController,vm = viewModel)
+            }
+            composable(Screen.StatusScreen.route){
+                StatusScreen(navController = navController,vm = viewModel)
+            }
+
+
 
         }
 
