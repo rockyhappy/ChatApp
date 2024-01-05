@@ -107,9 +107,9 @@ class LCViewModel @Inject constructor(
             result?.addOnSuccessListener {
                 inProgress.value = false
                 vm.userData.value?.imageUrl ="https://firebasestorage.googleapis.com/v0/b/chatapp-3433b.appspot.com/o/images%2F${uuid}?alt=media&token=aa59f1c5-6340-48fe-806c-9e5ff1cce348"
+                createOrUpdateProfile(imageUrl = vm.userData.value?.imageUrl)
             }
         }
-
             .addOnFailureListener{
                 handleException(it, "Can't Retrieve Data")
             }
@@ -135,6 +135,16 @@ class LCViewModel @Inject constructor(
 
                 if (it.exists()) {
                     //update user profile if already exists
+                    db.collection(USER_NODE).document(user).update(userData.toMap())
+                        .addOnSuccessListener {
+                            Log.d("TAG", "DocumentSnapshot successfully written!")
+                            inProgress.value = false
+                        }
+                        .addOnFailureListener { e ->
+                            Log.w("TAG", "Error writing document", e)
+                            handleException(e, "Can't Retrieve Data")
+                            inProgress.value = false
+                        }
                 } else {
                     db.collection(USER_NODE).document(user).set(userData.toMap())
                         .addOnSuccessListener {

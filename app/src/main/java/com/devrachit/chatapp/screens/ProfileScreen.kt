@@ -81,7 +81,9 @@ fun ProfileScreen(vm: LCViewModel, navController: NavController) {
                 onBack = {
                     navController.popBackStack()
                 },
-                onSave = {},
+                onSave = {
+                    vm.createOrUpdateProfile(name,number)
+                },
                 onLogout = {}
             )
         }
