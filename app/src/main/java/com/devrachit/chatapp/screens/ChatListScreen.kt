@@ -13,4 +13,5 @@ import com.devrachit.chatapp.LCViewModel
 fun ChatListScreen(navController: NavController,vm : LCViewModel) {
 
     Text(text = "ChatListScreen", color = Color.Black, modifier = Modifier.background(Color.White))
+    BottomNavigationMenu(selectedItem = BottomNavigationItem.HomeScreen, navController = navController)
 }
