@@ -3,14 +3,22 @@ package com.devrachit.chatapp
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
+import com.devrachit.chatapp.Constants.Companion.CHAT_NODE
 import com.devrachit.chatapp.Constants.Companion.USER_NODE
+import com.devrachit.chatapp.Data.ChatUser
 import com.devrachit.chatapp.Data.Event
 import com.devrachit.chatapp.Data.UserData
+import com.devrachit.chatapp.Data.chatData
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firestore.v1.StructuredQuery
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.Filter
+import com.google.firebase.firestore.toObjects
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.lang.Exception
 import java.util.UUID
@@ -25,6 +33,8 @@ class LCViewModel @Inject constructor(
 
 
     val inProgress = mutableStateOf(false)
+    val inProcessChats = mutableStateOf(false)
+    val chats = mutableStateOf<List<chatData>>(listOf())
     val eventMutableState = mutableStateOf<Event<String>?>(null)
     var signedIn = mutableStateOf(false)
     var userData = mutableStateOf<UserData?>(null)
@@ -186,5 +196,63 @@ class LCViewModel @Inject constructor(
         Log.e("TAG", "handleException: ${exception?.localizedMessage ?: customMessage}")
         val errorMessage = exception?.localizedMessage ?: customMessage
         eventMutableState.value = Event(errorMessage)
+    }
+    fun logout() {
+        auth.signOut()
+        userData.value = null
+        signedIn.value = false
+        eventMutableState.value = Event("Logged out successfully")
+    }
+    fun addChat(number: String){
+
+        if(number.isEmpty() or ! number.isDigitsOnly()){
+            handleException(customMessage = "Number must contain Digits only")
+            return
+        }
+        else
+        {
+            Log.d("TAG", "addChat: $number")
+            db.collection(CHAT_NODE).get()
+                .addOnSuccessListener {
+                if(it.isEmpty){
+                    db.collection(USER_NODE).whereEqualTo("number",number).get().addOnSuccessListener {
+                        if(it.isEmpty){
+                            handleException(customMessage = "User not found")
+                        }
+                        else{
+                            val chatPartner=it.toObjects<UserData>()[0]
+                            val id = db.collection(CHAT_NODE).document().id
+                            val chat = chatData(
+                                chatId = id,
+                                user1 = ChatUser(
+                                    userId = userData.value?.userId,
+                                    name = userData.value?.name,
+                                    number = userData.value?.number,
+                                    imageUrl = userData.value?.imageUrl
+                                ),
+                                user2 = ChatUser(
+                                    userId = chatPartner.userId,
+                                    name = chatPartner.name,
+                                    number = chatPartner.number,
+                                    imageUrl = chatPartner.imageUrl
+                                )
+                            )
+                            db.collection(CHAT_NODE).document(id).set(chat.toMap()).addOnSuccessListener {
+                                Log.d("TAG", "DocumentSnapshot successfully written!")
+                            }
+                                .addOnFailureListener { e ->
+                                    Log.w("TAG", "Error writing document", e)
+                                    handleException(e, "Can't Retrieve Data")
+                                }
+                        }
+                    }
+                }
+                else{
+                    handleException(customMessage = "Chat already exists")
+
+                }
+            }
+
+        }
     }
 }

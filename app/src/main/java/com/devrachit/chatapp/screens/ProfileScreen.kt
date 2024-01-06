@@ -35,9 +35,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.devrachit.chatapp.LCViewModel
+import com.devrachit.chatapp.Screen
 import com.devrachit.chatapp.util.CommonDivider
 import com.devrachit.chatapp.util.CommonImage
 import com.devrachit.chatapp.util.customProgressBar
+import com.devrachit.chatapp.util.navigateToScreen
 
 
 @Composable
@@ -84,7 +86,10 @@ fun ProfileScreen(vm: LCViewModel, navController: NavController) {
                 onSave = {
                     vm.createOrUpdateProfile(name,number)
                 },
-                onLogout = {}
+                onLogout = {
+                    vm.logout()
+                    navigateToScreen(navController = navController, route = Screen.LoginScreen.route)
+                }
             )
         }
 
