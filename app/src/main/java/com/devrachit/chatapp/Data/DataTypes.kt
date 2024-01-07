@@ -35,3 +35,18 @@ data class ChatUser(
     val number: String?="",
     var imageUrl: String?=""
 )
+
+data class Message(
+    val sendBy: String?="",
+    val message: String?="",
+    val timeStamp: String?=""
+){
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "sendBy" to sendBy,
+            "message" to message,
+            "timeStamp" to timeStamp
+        )
+    }
+}
+

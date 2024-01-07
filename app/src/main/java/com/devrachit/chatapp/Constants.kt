@@ -6,5 +6,6 @@ class Constants {
         val API_KEY="g92ptjxp9stw"
         val USER_NODE="users"
         val CHAT_NODE="chats"
+        val MESSAGE_NODE="messages"
     }
 }
