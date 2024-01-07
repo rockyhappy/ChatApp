@@ -18,6 +18,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firestore.v1.StructuredQuery
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.Filter
+import com.google.firebase.firestore.toObject
 import com.google.firebase.firestore.toObjects
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.lang.Exception
@@ -187,6 +188,7 @@ class LCViewModel @Inject constructor(
                 var user = value.toObject(UserData::class.java)
                 userData.value = user
                 inProgress.value = false
+                populateChats()
             }
         }
     }
@@ -212,7 +214,18 @@ class LCViewModel @Inject constructor(
         else
         {
             Log.d("TAG", "addChat: $number")
-            db.collection(CHAT_NODE).get()
+            db.collection(CHAT_NODE).where(
+                Filter.or(
+                   Filter.and(
+                       Filter.equalTo("user1.number",userData.value?.number),
+                       Filter.equalTo("user2.number",number)
+                   ),
+                    Filter.and(
+                        Filter.equalTo("user2.number",userData.value?.number),
+                        Filter.equalTo("user1.number",number)
+                   )
+                )
+            ).get()
                 .addOnSuccessListener {
                 if(it.isEmpty){
                     db.collection(USER_NODE).whereEqualTo("number",number).get().addOnSuccessListener {
@@ -255,4 +268,26 @@ class LCViewModel @Inject constructor(
 
         }
     }
-}
+    fun populateChats(){
+        inProcessChats.value = true
+        db.collection(CHAT_NODE)
+            .where(
+                Filter.or(
+                    Filter.equalTo("user1.userId",userData.value?.userId),
+                    Filter.equalTo("user2.userId",userData.value?.userId)
+                )
+            )
+            .addSnapshotListener{value,error->
+                if(error!=null){
+                    handleException(error)
+                }
+                if(value!=null) {
+                    chats.value=value.documents.mapNotNull{
+                        it.toObject<chatData>()
+                    }
+                    inProcessChats.value = false
+                }
+            }
+
+        }
+    }

@@ -18,6 +18,7 @@ import com.devrachit.chatapp.Constants.Companion.API_SECRET
 import com.devrachit.chatapp.screens.ChatListScreen
 import com.devrachit.chatapp.screens.ProfileScreen
 import com.devrachit.chatapp.screens.SignupScreen
+import com.devrachit.chatapp.screens.SingleChatScreen
 import com.devrachit.chatapp.screens.StatusScreen
 import com.devrachit.chatapp.screens.loginScreen
 import com.devrachit.chatapp.ui.theme.ChatappTheme
@@ -73,7 +74,12 @@ class MainActivity : ComponentActivity() {
             composable(Screen.StatusScreen.route){
                 StatusScreen(navController = navController,vm = viewModel)
             }
-
+            composable(Screen.SingleChatScreen.route){
+                val chatId = it.arguments?.getString("chatId")
+                chatId?.let {
+                    SingleChatScreen(navController = navController,vm = viewModel,chatId = chatId)
+                }
+            }
 
 
         }
