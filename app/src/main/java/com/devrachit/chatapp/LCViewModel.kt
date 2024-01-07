@@ -20,6 +20,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firestore.v1.StructuredQuery
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.Filter
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.toObject
 import com.google.firebase.firestore.toObjects
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,6 +42,9 @@ class LCViewModel @Inject constructor(
     val eventMutableState = mutableStateOf<Event<String>?>(null)
     var signedIn = mutableStateOf(false)
     var userData = mutableStateOf<UserData?>(null)
+    val chatMessages = mutableStateOf<List<Message>>(listOf())
+    val inProgressChatMessages = mutableStateOf(false)
+    var currentChatMessageListener: ListenerRegistration? = null
 
     init {
         signedIn.value = auth.currentUser != null
@@ -208,6 +212,8 @@ class LCViewModel @Inject constructor(
         auth.signOut()
         userData.value = null
         signedIn.value = false
+        depopulateMessages()
+        currentChatMessageListener=null
         eventMutableState.value = Event("Logged out successfully")
     }
 
@@ -313,5 +319,28 @@ class LCViewModel @Inject constructor(
                 Log.w("TAG", "Error writing document", e)
                 handleException(e, "Can't Retrieve Data")
             }
+    }
+
+    fun populateMessages(chatId: String) {
+        inProgressChatMessages.value = true
+        currentChatMessageListener =
+            db.collection(CHAT_NODE).document(chatId).collection(MESSAGE_NODE)
+                .addSnapshotListener { value, error ->
+                    if (error != null) {
+                        handleException(error)
+                    }
+                    if (value != null) {
+                        chatMessages.value = value.documents.mapNotNull {
+                            it.toObject<Message>()
+                        }.sortedBy {
+                            it.timeStamp
+                        }
+                        inProgressChatMessages.value = false
+                    }
+                }
+    }
+    fun depopulateMessages(){
+        chatMessages.value= listOf()
+        currentChatMessageListener=null
     }
 }
