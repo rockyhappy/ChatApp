@@ -1,12 +1,11 @@
 package com.devrachit.chatapp.Data
 
 data class UserData(
-    val userId: String?="",
-    val name: String?="",
-    val number: String?="",
-    var imageUrl: String?=""
-)
-{
+    val userId: String? = "",
+    val name: String? = "",
+    val number: String? = "",
+    var imageUrl: String? = ""
+) {
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "userId" to userId,
@@ -16,10 +15,12 @@ data class UserData(
         )
     }
 }
+
 data class chatData(
-    val chatId: String?="",
-    val user1: ChatUser=ChatUser(),
-    val user2:ChatUser=ChatUser()) {
+    val chatId: String? = "",
+    val user1: ChatUser = ChatUser(),
+    val user2: ChatUser = ChatUser()
+) {
 
     fun toMap(): Map<String, Any?> {
         return mapOf(
@@ -29,18 +30,19 @@ data class chatData(
         )
     }
 }
+
 data class ChatUser(
-    val userId: String?="",
-    val name: String?="",
-    val number: String?="",
-    var imageUrl: String?=""
+    val userId: String? = "",
+    val name: String? = "",
+    val number: String? = "",
+    var imageUrl: String? = ""
 )
 
 data class Message(
-    val sendBy: String?="",
-    val message: String?="",
-    val timeStamp: String?=""
-){
+    val sendBy: String? = "",
+    val message: String? = "",
+    val timeStamp: String? = ""
+) {
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "sendBy" to sendBy,
@@ -50,3 +52,8 @@ data class Message(
     }
 }
 
+data class Status(
+    val user: ChatUser = ChatUser(),
+    val imageUrl: String? = "",
+    val timeStamp: String? = ""
+)
