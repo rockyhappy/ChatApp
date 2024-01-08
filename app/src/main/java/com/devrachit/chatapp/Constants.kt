@@ -7,5 +7,6 @@ class Constants {
         val USER_NODE="users"
         val CHAT_NODE="chats"
         val MESSAGE_NODE="messages"
+        val STATUS_NODE="status"
     }
 }

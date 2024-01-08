@@ -7,10 +7,12 @@ import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
 import com.devrachit.chatapp.Constants.Companion.CHAT_NODE
 import com.devrachit.chatapp.Constants.Companion.MESSAGE_NODE
+import com.devrachit.chatapp.Constants.Companion.STATUS_NODE
 import com.devrachit.chatapp.Constants.Companion.USER_NODE
 import com.devrachit.chatapp.Data.ChatUser
 import com.devrachit.chatapp.Data.Event
 import com.devrachit.chatapp.Data.Message
+import com.devrachit.chatapp.Data.Status
 import com.devrachit.chatapp.Data.UserData
 import com.devrachit.chatapp.Data.chatData
 import com.google.firebase.Firebase
@@ -20,6 +22,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firestore.v1.StructuredQuery
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.Filter
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.toObject
 import com.google.firebase.firestore.toObjects
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,6 +44,13 @@ class LCViewModel @Inject constructor(
     val eventMutableState = mutableStateOf<Event<String>?>(null)
     var signedIn = mutableStateOf(false)
     var userData = mutableStateOf<UserData?>(null)
+    val chatMessages = mutableStateOf<List<Message>>(listOf())
+    val inProgressChatMessages = mutableStateOf(false)
+    var currentChatMessageListener: ListenerRegistration? = null
+    val status = mutableStateOf<List<Status>>(listOf())
+    val inProcessStatus = mutableStateOf(false)
+
+    var justUpload = ""
 
     init {
         signedIn.value = auth.currentUser != null
@@ -105,11 +115,12 @@ class LCViewModel @Inject constructor(
 
     fun uploadProfileImage(uri: Uri, vm: LCViewModel) {
         uploadImage(uri, vm) {
-            createOrUpdateProfile(imageUrl = it.toString())
+//            createOrUpdateProfile(imageUrl = it.toString())
         }
     }
 
     fun uploadImage(uri: Uri, vm: LCViewModel, onSuccess: (Uri) -> Unit) {
+        Log.d("reach", "uploadImage: ")
         inProgress.value = true
         val storageRef = storage.reference
         val uuid = UUID.randomUUID()
@@ -129,6 +140,27 @@ class LCViewModel @Inject constructor(
                 handleException(it, "Can't Retrieve Data")
             }
 
+    }
+
+    fun uploadStatusImage(uri: Uri, vm: LCViewModel) {
+        inProcessStatus.value = true
+        val storageRef = storage.reference
+        val uuid = UUID.randomUUID()
+        val imageRef = storageRef.child("images/$uuid")
+        Log.d("TAG", "uploadImage: ${imageRef.path}")
+        val uploadTask = imageRef.putFile(uri)
+        uploadTask.addOnSuccessListener {
+            val result = it.metadata?.reference?.downloadUrl
+            result?.addOnSuccessListener {
+                inProcessStatus.value = false
+                vm.justUpload =
+                    "https://firebasestorage.googleapis.com/v0/b/chatapp-3433b.appspot.com/o/images%2F${uuid}?alt=media&token=aa59f1c5-6340-48fe-806c-9e5ff1cce348"
+                createStatus(vm.justUpload)
+            }
+        }
+            .addOnFailureListener {
+                handleException(it, "Can't Retrieve Data")
+            }
     }
 
     fun createOrUpdateProfile(
@@ -192,6 +224,8 @@ class LCViewModel @Inject constructor(
                 var user = value.toObject(UserData::class.java)
                 userData.value = user
                 inProgress.value = false
+                populateStatus()
+                Log.d("error",status.value.toString())
                 populateChats()
             }
         }
@@ -208,6 +242,8 @@ class LCViewModel @Inject constructor(
         auth.signOut()
         userData.value = null
         signedIn.value = false
+        depopulateMessages()
+        currentChatMessageListener = null
         eventMutableState.value = Event("Logged out successfully")
     }
 
@@ -313,5 +349,90 @@ class LCViewModel @Inject constructor(
                 Log.w("TAG", "Error writing document", e)
                 handleException(e, "Can't Retrieve Data")
             }
+    }
+
+    fun populateMessages(chatId: String) {
+        inProgressChatMessages.value = true
+        currentChatMessageListener =
+            db.collection(CHAT_NODE).document(chatId).collection(MESSAGE_NODE)
+                .addSnapshotListener { value, error ->
+                    if (error != null) {
+                        handleException(error)
+                    }
+                    if (value != null) {
+                        chatMessages.value = value.documents.mapNotNull {
+                            it.toObject<Message>()
+                        }.sortedBy {
+                            it.timeStamp
+                        }
+                        inProgressChatMessages.value = false
+                    }
+                }
+    }
+
+    fun depopulateMessages() {
+        chatMessages.value = listOf()
+        currentChatMessageListener = null
+    }
+
+    fun uploadStatus(uri: Uri, vm: LCViewModel) {
+        uploadStatusImage(uri, vm)
+    }
+
+    fun createStatus(imageUrl: String) {
+        val newStatus = Status(
+            ChatUser(
+                userId = userData.value?.userId,
+                name = userData.value?.name,
+                number = userData.value?.number,
+                imageUrl = userData.value?.imageUrl
+            ),
+            imageUrl,
+            System.currentTimeMillis().toString()
+        )
+        db.collection(STATUS_NODE).document().set(newStatus).addOnSuccessListener {}
+
+    }
+
+    fun populateStatus() {
+//        val timeDelta = 24 * 60 * 60 * 1000
+//        val currentTime = System.currentTimeMillis()
+//        val timeLimit = currentTime - timeDelta
+        inProcessStatus.value = true
+//        db.collection(CHAT_NODE).where(
+//            Filter.or(
+//                Filter.equalTo("user1.userId", userData.value?.userId),
+//                Filter.equalTo("user2.userId", userData.value?.userId)
+//            )
+//        ).addSnapshotListener { value, error ->
+//            if (error != null) {
+//                handleException(error)
+//            }
+//            if (value != null) {
+//                val currentConnections = arrayListOf(userData.value?.userId)
+//                val chats = value.toObjects<chatData>()
+//                chats.forEach {
+//                    if (it.user1.userId == userData.value?.userId) {
+//                        currentConnections.add(it.user2.userId)
+//                    } else {
+//                        currentConnections.add(it.user1.userId)
+//                    }
+//                }
+                db.collection(STATUS_NODE)
+//                    .whereGreaterThan("timestamp", timeLimit)
+//                    .whereIn("user.userId", currentConnections)
+                    .addSnapshotListener { value, error ->
+                        if (error != null) {
+                            handleException(error)
+                        }
+                        if (value != null) {
+                            status.value = value.toObjects()
+                            Log.d("error", status.value.toString())
+                            inProcessStatus.value = false
+                        }
+                    }
+
+//            inProcessStatus.value = false
+//        }
     }
 }
