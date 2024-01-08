@@ -43,12 +43,12 @@ fun StatusScreen(vm: LCViewModel, navController: NavController) {
         val userData = vm.userData.value
         val myStatuses = status.filter { it.user.userId == userData?.userId }
         val otherStatuses = status.filter { it.user.userId != userData?.userId }
-        val launcherForStatus= rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent() ){
-            uri->
-            uri?.let{
-                vm.uploadStatus(it,vm)
+        val launcherForStatus =
+            rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
+                uri?.let {
+                    vm.uploadStatus(it, vm)
+                }
             }
-        }
         Scaffold(
             bottomBar = {
                 BottomNavigationMenu(
@@ -71,33 +71,42 @@ fun StatusScreen(vm: LCViewModel, navController: NavController) {
                     TitleText(text = "Status")
                     if (status.isEmpty()) {
                         Column(
-                            modifier= Modifier
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
-                        ){
+                        ) {
                             Text(text = "No Statuses Available")
                         }
                     } else {
-                        if(myStatuses.isNotEmpty()){
-                            CommonRow(imageUrl = myStatuses[0].user.imageUrl, name =myStatuses[0].user.name ) {
-                                    navigateToScreen(
-                                        navController = navController,Screen.SingleStatusScreen.createRoute(myStatuses[0].user.userId!!)
-                                    )
+                        if (myStatuses.isNotEmpty()) {
+                            CommonRow(
+                                imageUrl = myStatuses[0].user.imageUrl,
+                                name = myStatuses[0].user.name
+                            ) {
+                                navigateToScreen(
+                                    navController = navController,
+                                    Screen.SingleStatusScreen.createRoute(myStatuses[0].user.userId!!)
+                                )
                             }
                             CommonDivider()
-                            val uniqueUser=otherStatuses.map{it.user}.toSet().toList()
-                            LazyColumn(modifier =Modifier.weight(1f) )
-                            {
-                                items(uniqueUser){user->
-                                    CommonRow(imageUrl = user.imageUrl, name = user.name) {
-                                        navigateToScreen(navController = navController,Screen.SingleStatusScreen.createRoute(user.userId!!))
-                                    }
-                                    
+                        }
+                        val uniqueUser = otherStatuses.map { it.user }.toSet().toList()
+
+                        LazyColumn(modifier = Modifier.weight(1f))
+                        {
+                            items(uniqueUser) { user ->
+                                CommonRow(imageUrl = user.imageUrl, name = user.name) {
+                                    navigateToScreen(
+                                        navController = navController,
+                                        Screen.SingleStatusScreen.createRoute(user.userId!!)
+                                    )
                                 }
+
                             }
                         }
+
                     }
                 }
             }
