@@ -69,47 +69,34 @@ fun StatusScreen(vm: LCViewModel, navController: NavController) {
                         .padding(paddingValues)
                 ) {
                     TitleText(text = "Status")
-                    if (status.isNotEmpty()) {
-                        if (myStatuses.isNotEmpty()) {
-                            CommonRow(
-                                imageUrl = myStatuses[0].user.name,
-                                name = myStatuses[0].user.name
-                            ) {
-                                navigateToScreen(
-                                    navController = navController,
-                                    Screen.SingleStatusScreen.createRoute(myStatuses[0].user.userId!!)
-                                )
-
-                            }
-                            CommonDivider()
-                            val uniqueUsers=otherStatuses.map{it.user}.toSet().toList()
-                            LazyColumn(modifier=Modifier.weight(1f)){
-                                items(uniqueUsers){user->
-                                    val userStatuses=otherStatuses.filter { it.user.userId==user.userId }
-                                    CommonRow(
-                                        imageUrl = user.imageUrl,
-                                        name = user.name
-                                    ) {
-                                        navigateToScreen(
-                                            navController = navController,
-                                            Screen.SingleStatusScreen.createRoute(user.userId!!)
-                                        )
-
-                                    }
-                                    CommonDivider()
-                                }
-
-                            }
-                        }
-                    } else {
+                    if (status.isEmpty()) {
                         Column(
-                            modifier = Modifier
+                            modifier= Modifier
                                 .fillMaxWidth()
                                 .weight(1f),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(text = "No Status Found")
+                        ){
+                            Text(text = "No Statuses Available")
+                        }
+                    } else {
+                        if(myStatuses.isNotEmpty()){
+                            CommonRow(imageUrl = myStatuses[0].user.imageUrl, name =myStatuses[0].user.name ) {
+                                    navigateToScreen(
+                                        navController = navController,Screen.SingleStatusScreen.createRoute(myStatuses[0].user.userId!!)
+                                    )
+                            }
+                            CommonDivider()
+                            val uniqueUser=otherStatuses.map{it.user}.toSet().toList()
+                            LazyColumn(modifier =Modifier.weight(1f) )
+                            {
+                                items(uniqueUser){user->
+                                    CommonRow(imageUrl = user.imageUrl, name = user.name) {
+                                        navigateToScreen(navController = navController,Screen.SingleStatusScreen.createRoute(user.userId!!))
+                                    }
+                                    
+                                }
+                            }
                         }
                     }
                 }

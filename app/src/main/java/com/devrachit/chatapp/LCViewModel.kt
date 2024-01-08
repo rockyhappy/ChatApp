@@ -224,8 +224,9 @@ class LCViewModel @Inject constructor(
                 var user = value.toObject(UserData::class.java)
                 userData.value = user
                 inProgress.value = false
-                populateChats()
                 populateStatus()
+                Log.d("error",status.value.toString())
+                populateChats()
             }
         }
     }
@@ -375,7 +376,7 @@ class LCViewModel @Inject constructor(
     }
 
     fun uploadStatus(uri: Uri, vm: LCViewModel) {
-        uploadStatusImage(uri,vm)
+        uploadStatusImage(uri, vm)
     }
 
     fun createStatus(imageUrl: String) {
@@ -394,44 +395,44 @@ class LCViewModel @Inject constructor(
     }
 
     fun populateStatus() {
-        val timeDelta=24*60*60*1000
-        val currentTime=System.currentTimeMillis()
-        val timeLimit=currentTime-timeDelta
+//        val timeDelta = 24 * 60 * 60 * 1000
+//        val currentTime = System.currentTimeMillis()
+//        val timeLimit = currentTime - timeDelta
         inProcessStatus.value = true
-        db.collection(CHAT_NODE).where(
-            Filter.or(
-                Filter.equalTo("user1.userId", userData.value?.userId),
-                Filter.equalTo("user2.userId", userData.value?.userId)
-            )
-        ).addSnapshotListener { value, error ->
-            if (error != null) {
-                handleException(error)
-            }
-            if (value != null) {
-                val currentConnections= arrayListOf(userData.value?.userId)
-                val chats=value.toObjects<chatData>()
-                chats.forEach {
-                    if(it.user1.userId==userData.value?.userId){
-                        currentConnections.add(it.user2.userId)
-                    }else{
-                        currentConnections.add(it.user1.userId)
-                    }
-                }
-                db.collection(STATUS_NODE).whereGreaterThan("timestamp",timeLimit).whereIn("user.userId",currentConnections).addSnapshotListener { value, error ->
-                    if (error != null) {
-                        handleException(error)
-                    }
-                    if (value != null) {
-                        status.value = value.documents.mapNotNull {
-                            it.toObject<Status>()
-                        }.sortedBy {
-                            it.timeStamp
+//        db.collection(CHAT_NODE).where(
+//            Filter.or(
+//                Filter.equalTo("user1.userId", userData.value?.userId),
+//                Filter.equalTo("user2.userId", userData.value?.userId)
+//            )
+//        ).addSnapshotListener { value, error ->
+//            if (error != null) {
+//                handleException(error)
+//            }
+//            if (value != null) {
+//                val currentConnections = arrayListOf(userData.value?.userId)
+//                val chats = value.toObjects<chatData>()
+//                chats.forEach {
+//                    if (it.user1.userId == userData.value?.userId) {
+//                        currentConnections.add(it.user2.userId)
+//                    } else {
+//                        currentConnections.add(it.user1.userId)
+//                    }
+//                }
+                db.collection(STATUS_NODE)
+//                    .whereGreaterThan("timestamp", timeLimit)
+//                    .whereIn("user.userId", currentConnections)
+                    .addSnapshotListener { value, error ->
+                        if (error != null) {
+                            handleException(error)
                         }
-                        inProcessStatus.value = false
+                        if (value != null) {
+                            status.value = value.toObjects()
+                            Log.d("error", status.value.toString())
+                            inProcessStatus.value = false
+                        }
                     }
-                }
-            }
-            inProcessStatus.value = false
-        }
+
+//            inProcessStatus.value = false
+//        }
     }
 }
